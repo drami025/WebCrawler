@@ -1,52 +1,56 @@
-import java.utils.concrrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentHashMap;
 import java.net.URL;
+import java.net.MalformedURLException;
 
 public class LinkHandler{
 
     
-    public static boolean check(String url, ConcurrentHashMap hm){
+    public boolean check(String url, ConcurrentHashMap hm){
      // call the robots function to see if it can be crawled.
        
         String cleanUrl = cleanURL(url);
 
-        if(hm.get(url) == NULL)
-        return  true;        
+        if(hm.get(cleanUrl) == null)
+         return true;
+
+        return false;
     }
         
-    public static void cleanURL(String url){
-       
+    public String cleanURL(String url){
+      
+        URL URLClean = null;
         try{
-            URL URLClean new URL(url);
+            URLClean = new URL(url);
         }
 
         catch(MalformedURLException e){
             e.printStackTrace();
         }
 
-        String finalURL;
+        String finalURL = null;
         
         if(url.startsWith("#")){
             return null;
         }
         
-        if(url.equal("/")){
+        if(url.equals("/")){
             return null;
         }
-        
+
         if(url.startsWith("/")){
-            finalURL = URL.getProtocol() + "://" + URLClean.getHost() + url;
+            finalURL = URLClean.getProtocol() + "://" + URLClean.getHost() + url;
         }
 
         if(url.startsWith("//")){
             //add the www. to link
-            finaURL = URLClrean.getProtocol() + "://" + url;
+            finalURL = URLClean.getProtocol() + "://" + url;
         }
 
         if(url.contains("?")) {
-            finalURL = URL.getProtocol() + "://" + URL.getHost() + "/" + URL.getPath() + "/" + URL.getQuery();    
+            finalURL = URLClean.getProtocol() + "://" + URLClean.getHost() + "/" + URLClean.getPath() + "/" + URLClean.getQuery();    
         }
         
-        if(!URLClean.getProtocol.equals("http")) {
+        if(!URLClean.getProtocol().equals("http")) {
         //change the protocol to http:
             return null; 
         }
@@ -54,11 +58,15 @@ public class LinkHandler{
          if(url.contains("#")){
             //remove the # and everything after it
             int index = url.indexOf('#');
-            finalURL = url.subString(0,index);
+            finalURL = url.substring(0,index);
+        }
+
+        if(URLClean.getHost() == url.substring(0) && url.charAt(0) == '/'){
+            finalURL = URLClean.getProtocol() + ":/" + url;
         }
 
         return finalURL;
-
+        
     }
 
 }
