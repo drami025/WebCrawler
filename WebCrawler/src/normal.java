@@ -1,8 +1,8 @@
-import java.net.URL
+import java.net.URL;
 
 public class normal {
 
-    public static cleanURL(String baseUrl, String url){
+    public static void cleanURL(String baseUrl, String url){
         
         if(url.startsWith("//")){
         //add the www. to link
