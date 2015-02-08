@@ -1,12 +1,13 @@
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
-import java.util.HashMap;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.HashMap;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -15,13 +16,16 @@ import org.jsoup.select.Elements;
 
 public class WebCrawler {
 	
-	static int mMax_Pages;
-	static int mMax_Hops;
+	private ConcurrentHashMap mAllLinks;
+	private static int mMax_Pages;
+	private static int mMax_Hops;
 	
 	public WebCrawler(int pages, int hops){
 		mMax_Pages = pages;
 		mMax_Hops = hops;
 	}
+	
+
 	
 	public String downloadFile(String url) throws IOException, MalformedURLException{
 		

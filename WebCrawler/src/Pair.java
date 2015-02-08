@@ -1,4 +1,4 @@
-public class Pair(){
+public class Pair{
 	//hello julia
     private int hops;
     private String urlLink;
@@ -9,7 +9,7 @@ public class Pair(){
     }
 
     public int getNumHops(){
-        return num;
+        return hops;
     }
 
     public String getLink(){
