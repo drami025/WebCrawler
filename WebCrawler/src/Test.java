@@ -24,9 +24,14 @@ public class Test {
 //		web.printLinks();
 		String seed = "http://www.ucr.edu/";
 		
-		WebCrawler web = new WebCrawler(20, 1, seed);
+		String file = "/home/daniel/workspace/WebCrawler/src/seed.txt";
+		int pages = Integer.parseInt("100");
+		int hops = Integer.parseInt("5");
+		String directory = "/home/daniel/workspace/url_files";
+		
+		WebCrawler web = new WebCrawler(pages, hops, file, directory);
 		try{
-			web.crawl(3);
+			web.crawl(1);
 		}catch(InterruptedException e){
 			e.printStackTrace();
 		}catch(MalformedURLException e){

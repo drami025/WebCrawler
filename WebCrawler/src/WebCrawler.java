@@ -1,6 +1,8 @@
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -26,25 +28,56 @@ public class WebCrawler {
 	private String seed;
 	private int crawled_pages = 0;
 	private int crawled_links = 0;
+	private String mDirectory;
 	
-	public WebCrawler(int pages, int hops, String seed){
+	public WebCrawler(int pages, int hops, String seedFile, String directory){
 		mAllLinks = new ConcurrentHashMap<String, Integer>(pages);
 		mMax_Pages = pages - 1;
 		mMax_Hops = hops;
 		mLinkQueue = new ArrayBlockingQueue<String>(pages);
-		mLinkQueue.add(seed);
-		mAllLinks.put(seed, hops);
+		mDirectory = directory;
 		
-		String fileName = "/home/daniel/workspace/url_files/crawled_url_links.txt";
+		BufferedReader bufferedReader; 
+		try{
+			bufferedReader = new BufferedReader(new FileReader(seedFile));
+			String line = null;
+			while((line = bufferedReader.readLine()) != null){
+				mLinkQueue.add(line);
+				mAllLinks.put(line, hops);
+			}
+		}catch(FileNotFoundException e){
+			e.printStackTrace();
+		}catch(IOException e){
+			e.printStackTrace();
+		}
 		
-		new File(fileName);
+//		mLinkQueue.add(seed);
+//		mAllLinks.put(seed, hops);
+		
+		String fileName = mDirectory + "/crawled_url_links.txt";
+		
+		File file = new File(fileName);
+		
+		try{
+			if(!file.exists()){
+				file.createNewFile();
+			}
+		}catch(IOException e){
+			e.printStackTrace();
+		}
 	}
 	
 	public void crawl(int hops) throws InterruptedException, MalformedURLException{
 		
 			String nextUrl = mLinkQueue.peek();
 			
-			String fileName = "/home/daniel/workspace/url_files/crawled_url_links.txt";
+			try{
+				getHtml(nextUrl);
+			}catch(IOException e){
+				e.printStackTrace();
+			}
+			
+			String fileName = mDirectory + "/crawled_url_links.txt";
 			
 			File file = new File(fileName);
 			
@@ -90,7 +123,7 @@ public class WebCrawler {
 		
 		String end = urlObj.getHost().replace('.', '_') + urlObj.getPath().replace('/', '_');
 		
-		String fileName = "/home/daniel/workspace/url_files/" + end + ".html";
+		String fileName = mDirectory + "/" + end + ".html";
 		
 		new File(fileName);
 		
@@ -111,12 +144,6 @@ public class WebCrawler {
 		
 		if(!RobotExclusionUtil.robotsShouldFollow(nextUrl)){
 			return;
-		}
-		
-		try{
-			getHtml(nextUrl);
-		}catch(IOException e){
-			e.printStackTrace();
 		}
 		
 		Document doc;
