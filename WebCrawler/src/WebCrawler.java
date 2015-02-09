@@ -21,8 +21,8 @@ import org.jsoup.select.Elements;
 public class WebCrawler {
 	
 	private ConcurrentHashMap<String, Integer> mAllLinks;
-	//private ArrayBlockingQueue<String> mLinkQueue;
-	private Queue<String> mLinkQueue;
+	private ArrayBlockingQueue<String> mLinkQueue;
+	//private Queue<String> mLinkQueue;
 	private static int mMax_Pages;
 	private static int mMax_Hops;
 	private String seed;
@@ -63,6 +63,16 @@ public class WebCrawler {
 				file.createNewFile();
 			}
 		}catch(IOException e){
+			e.printStackTrace();
+		}
+	}
+	
+	public void crawl(){
+		try{
+			crawl(mAllLinks.get(mLinkQueue.peek()));
+		}catch(InterruptedException e){
+			e.printStackTrace();
+		}catch(MalformedURLException e){
 			e.printStackTrace();
 		}
 	}
@@ -153,7 +163,7 @@ public class WebCrawler {
 		int num = 0;
 		
 		try{
-			doc = Jsoup.connect(nextUrl).get();
+			doc = Jsoup.connect(nextUrl).followRedirects(false).get();
 			
 			url = new URL(nextUrl);
 			String host = url.getHost();
@@ -177,6 +187,10 @@ public class WebCrawler {
 		}/*catch(InterruptedException e){
 			e.printStackTrace();
 		}*/
+	}
+	
+	public boolean isFinished(){
+		return crawled_pages == mMax_Pages;
 	}
 	
 	public void test() throws MalformedURLException{
@@ -216,9 +230,7 @@ public class WebCrawler {
 		}
 		
 		System.out.println("URI: " + uri.toString());
-		
-		
-		
+	
 		System.out.println("\nNumber of links: " + i);
 	}
 	

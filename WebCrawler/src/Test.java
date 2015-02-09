@@ -4,6 +4,8 @@ import java.net.URL;
 
 
 public class Test {
+	
+	private static WebCrawler web;
 	public static void main(String[] args){
 		
 //		WebCrawler web = new WebCrawler(100, 100, "http://www.ucr.edu/");
@@ -29,14 +31,22 @@ public class Test {
 		int hops = Integer.parseInt("5");
 		String directory = "/home/daniel/workspace/url_files";
 		
-		WebCrawler web = new WebCrawler(pages, hops, file, directory);
-		try{
-			web.crawl(1);
-		}catch(InterruptedException e){
-			e.printStackTrace();
-		}catch(MalformedURLException e){
-			e.printStackTrace();
+		web = new WebCrawler(pages, hops, file, directory);
+		
+		Test t = new Test();
+		
+		
+		while(!web.isFinished()){
+			CrawlingThread thread = t.new CrawlingThread();
+			thread.start();
 		}
+//		try{
+//			web.crawl(1);
+//		}catch(InterruptedException e){
+//			e.printStackTrace();
+//		}catch(MalformedURLException e){
+//			e.printStackTrace();
+//		}
 		
 //		try{
 //			web.test();
@@ -56,5 +66,11 @@ public class Test {
 //		}
 //		
 //		System.out.println("\nOutput is: " + output);
+	}
+	
+	private class CrawlingThread extends Thread{
+		public void run(){
+			web.crawl();
+		}
 	}
 }

@@ -1,6 +1,8 @@
-import java.util.concurrent.ConcurrentHashMap;
-import java.net.URL;
+import java.io.IOException;
+import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class LinkHandler{
 
@@ -24,7 +26,7 @@ public class LinkHandler{
 
         String finalURL = url;
         
-        String protocol = "http://";
+        String protocol = "http";
         
         if(url == null || url.equals("") || url.equals("./")){
         	return null;
@@ -39,19 +41,19 @@ public class LinkHandler{
         }
 
         if(url.startsWith("/")){
-            finalURL = protocol + host + url;
+            finalURL = protocol + "://" + host + url;
         }
         else if(!url.contains(host) && !url.contains(protocol)){
-        	finalURL = protocol + host + "/" + url;
+        	finalURL = protocol + "://" + host + "/" + url;
         }
 
         if(url.startsWith("//")){
             //add the www. to link
-            finalURL = protocol + "://" + url;
+            finalURL = protocol + ":" + url;
         }
         
         if(url.startsWith("..")){
-        	finalURL = protocol + host + "/" + url;
+        	finalURL = protocol + "://" + host + "/" + url;
         }
         
         URL URLClean = null;
@@ -68,7 +70,7 @@ public class LinkHandler{
         }
         
         if(url.contains("?")) {
-            finalURL = protocol + host + "/" + URLClean.getPath() + "/" + URLClean.getQuery();    
+            finalURL = protocol + "://" + host + "/" + URLClean.getPath() + "/" + URLClean.getQuery();    
         }
 
         if(url.contains("#")){
@@ -83,9 +85,28 @@ public class LinkHandler{
         if(URLClean.getHost() == url.substring(0) && url.charAt(0) == '/'){
             finalURL = URLClean.getProtocol() + ":/" + url;
         }
-
-        return finalURL;
         
+        try{
+        	System.out.println(finalURL);
+        	if(isErrorLink(finalURL)){
+        		return null;
+        	}
+        }catch(IOException e){
+        	return null;
+        }
+        
+        return finalURL;
+    }
+    
+    public static boolean isErrorLink(String url) throws MalformedURLException, IOException{
+    	URL u = new URL(url);
+    	HttpURLConnection.setFollowRedirects(false);
+    	HttpURLConnection httpCon = (HttpURLConnection) u.openConnection();
+    	httpCon.setRequestMethod("GET");
+    	httpCon.connect();
+    	boolean isError = (httpCon.getResponseCode() != HttpURLConnection.HTTP_OK);
+    	httpCon.disconnect();
+    	return isError;
     }
 
 }
