@@ -32,14 +32,15 @@ public class Test {
 		String directory = "/home/daniel/workspace/url_files";
 		
 		web = new WebCrawler(pages, hops, file, directory);
+		web.crawl();
 		
-		Test t = new Test();
-		
-		
-		while(!web.isFinished()){
-			CrawlingThread thread = t.new CrawlingThread();
-			thread.start();
-		}
+//		Test t = new Test();
+//		
+//		
+//		while(!web.isFinished()){
+//			CrawlingThread thread = t.new CrawlingThread();
+//			thread.start();
+//		}
 //		try{
 //			web.crawl(1);
 //		}catch(InterruptedException e){
