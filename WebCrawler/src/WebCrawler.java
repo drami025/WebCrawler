@@ -5,8 +5,9 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.MalformedURLException;
+import java.net.URI;
 import java.net.URL;
-import java.util.HashMap;
+import java.util.Queue;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -18,26 +19,61 @@ import org.jsoup.select.Elements;
 public class WebCrawler {
 	
 	private ConcurrentHashMap<String, Integer> mAllLinks;
-	private ArrayBlockingQueue<String> mLinkQueue;
+	//private ArrayBlockingQueue<String> mLinkQueue;
+	private Queue<String> mLinkQueue;
 	private static int mMax_Pages;
 	private static int mMax_Hops;
 	private String seed;
+	private int crawled_pages = 0;
+	private int crawled_links = 0;
 	
 	public WebCrawler(int pages, int hops, String seed){
-		mMax_Pages = pages;
+		mAllLinks = new ConcurrentHashMap<String, Integer>(pages);
+		mMax_Pages = pages - 1;
 		mMax_Hops = hops;
-		mLinkQueue = new ArrayBlockingQueue<String>(1000);
+		mLinkQueue = new ArrayBlockingQueue<String>(pages);
 		mLinkQueue.add(seed);
 		mAllLinks.put(seed, hops);
+		
+		String fileName = "/home/daniel/workspace/url_files/crawled_url_links.txt";
+		
+		new File(fileName);
 	}
 	
 	public void crawl(int hops) throws InterruptedException, MalformedURLException{
 		
-			if(hops == 0){
+			String nextUrl = mLinkQueue.peek();
+			
+			String fileName = "/home/daniel/workspace/url_files/crawled_url_links.txt";
+			
+			File file = new File(fileName);
+			
+			FileWriter fileWriter = null; 
+			
+			try{
+				if(!file.exists()){
+					file.createNewFile();
+				}
+				
+				fileWriter = new FileWriter(fileName, true);
+				BufferedWriter bufferedWriter = new BufferedWriter(fileWriter);
+				bufferedWriter.write(nextUrl + "\n");
+				bufferedWriter.close();
+				
+			}catch(IOException e){
+				e.printStackTrace();
+			}
+		
+			System.out.println("Link: " + nextUrl + ", Away from seed: " + (5 - mAllLinks.get(nextUrl)));
+		
+			if(hops < 0 || crawled_pages == mMax_Pages){
 				return;
 			}
 		
-			String nextUrl = mLinkQueue.take();
+			crawled_pages++;
+			//String nextUrl = mLinkQueue.take();
+			
+			mLinkQueue.remove();
 			
 			getLinks(nextUrl);
 			
@@ -50,19 +86,23 @@ public class WebCrawler {
 		URL urlObj = new URL(url);
 		
 		BufferedReader bufferedReader = new BufferedReader(
-					new InputStreamReader(urlObj.openConnection().getInputStream()));
+					new InputStreamReader(urlObj.openStream()));
 		
-		String fileName = "/home/daniel/workspace/url_files/" + url;
+		String end = urlObj.getHost().replace('.', '_') + urlObj.getPath().replace('/', '_');
+		
+		String fileName = "/home/daniel/workspace/url_files/" + end + ".html";
 		
 		new File(fileName);
 		
 		BufferedWriter bufferedWriter = new BufferedWriter (new FileWriter(fileName));
 		
-		while(bufferedReader.ready()){
-			
-			String line = bufferedReader.readLine();
+		String line;
+		while((line = bufferedReader.readLine()) != null){	
 			bufferedWriter.write(line + "\n");
 		}
+		
+		bufferedReader.close();
+		bufferedWriter.close();
 		
 		return bufferedReader.toString();
 	}
@@ -81,24 +121,79 @@ public class WebCrawler {
 		
 		Document doc;
 		
+		URL url;
+		
 		int num = 0;
 		
 		try{
 			doc = Jsoup.connect(nextUrl).get();
+			
+			url = new URL(nextUrl);
+			String host = url.getHost();
 			
 			Elements links = doc.select("a[href]");
 			
 			for(Element link : links){
 				String linkString = link.attr("href");
 				
-				mAllLinks.put(linkString, mAllLinks.get(nextUrl) - 1);
-				mLinkQueue.put(linkString);
+				String normalized_link = LinkHandler.cleanURL(linkString, host);
+				
+				if(normalized_link != null && mAllLinks.get(normalized_link) == null && crawled_links < mMax_Pages){
+					mAllLinks.put(normalized_link, mAllLinks.get(nextUrl) - 1);
+					//mLinkQueue.put(linkString);
+					mLinkQueue.add(normalized_link);
+					crawled_links++;
+				}
 			}
 		}catch(IOException e){
+			return;
+		}/*catch(InterruptedException e){
 			e.printStackTrace();
-		}catch(InterruptedException e){
+		}*/
+	}
+	
+	public void test() throws MalformedURLException{
+		
+		String urlString = "http://www.indeed.com?indpubnum=3957652204875274&utm_source=publisher&utm_medium=referral&utm_campaign=cnn-partner&utm_term=3+millions+jobs&chnl=3millionjobs";
+		
+		URL url = new URL(urlString);
+		
+		Document doc;
+		int i = 0;
+		
+		try{
+			doc = Jsoup.connect(urlString).get();
+			
+			Elements links = doc.select("a[href]");
+			
+			for(Element link : links){
+				String linkString = link.attr("href");
+				
+				System.out.println("\nLink: " + linkString);
+				i++;
+			}
+			
+			
+		}catch(IOException e){
 			e.printStackTrace();
 		}
+		
+		URL test2 = new URL("http://www.google.com");
+		
+		URI uri = null;
+		
+		try{
+			uri = new URI(test2.getProtocol(), test2.getHost(), null, null, null);
+		}catch(Exception e){
+			e.printStackTrace();
+		}
+		
+		System.out.println("URI: " + uri.toString());
+		
+		
+		
+		System.out.println("\nNumber of links: " + i);
 	}
+	
 	
 }
