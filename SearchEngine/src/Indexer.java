@@ -36,9 +36,9 @@ public class Indexer {
 	  
 	  	private static void addDoc(IndexWriter w, String title, String body, String url) throws IOException {
 		    Document doc = new Document();
-		    doc.add(new TextField("title", title, Field.Store.YES));
+		    doc.add(new VectorTextField("title", title, Field.Store.YES));
 		    doc.add(new StringField("url", url, Field.Store.YES));
-		    doc.add(new TextField("body", body, Field.Store.YES));
+		    doc.add(new VectorTextField("body", body, Field.Store.YES));
 		    w.addDocument(doc);
 		  }
 		  
